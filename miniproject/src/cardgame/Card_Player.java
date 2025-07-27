@@ -16,6 +16,8 @@ public class Card_Player {
 
     public Card_Player(String name) {
         this.name = name;
+        this.hand = new ArrayList<>();
+        this.bettingSystem = new BettingSystem(1_000_000);
     }
 
     //카드 받기 (최대 7장까지)
@@ -87,4 +89,12 @@ public class Card_Player {
     public Card getDiscardedCard() {
         return discardedCard;
     }
+    
+    private BettingSystem bettingSystem;
+
+    
+    public BettingSystem getBettingSystem() {
+        return bettingSystem;
+    }
+
 }

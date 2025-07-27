@@ -123,6 +123,8 @@ public class CardMain {
         printAllPlayerCards(players, sc);
 
 
+        int currentMaxBet = 0; //라운드 최고 베팅 금액 추적용
+
 
         // 5장 받은 후 베팅
         Iterator<Card_Player> iter = bettingPlayers.iterator();
@@ -131,17 +133,51 @@ public class CardMain {
             clearScreen();
             System.out.println(p.getName() + "의 현재 카드 (5장):");
             printCards(p, p);
+            System.out.println("현재 잔액: " + p.getBettingSystem().getBalance() + "원");
+
             System.out.print("계속 베팅하시겠습니까? (y/n): ");
-            if (!sc.nextLine().equalsIgnoreCase("y")) {
+            String input = sc.nextLine();
+            if (!input.equalsIgnoreCase("y")) {
+                iter.remove();
+                continue;
+            }
+
+            System.out.println("베팅 옵션: 1) 쿼터  2) 하프  3) 올인  4) 콜  5) 다이");
+            System.out.print("선택 (1~5): ");
+            int choice = Integer.parseInt(sc.nextLine());
+
+            int balance = p.getBettingSystem().getBalance();
+            int myCurrentBet = p.getBettingSystem().getCurrentBet();
+            int toCall = currentMaxBet - myCurrentBet;
+            int betAmount = 0;
+
+            switch (choice) {
+                case 1 -> betAmount = balance / 4;
+                case 2 -> betAmount = balance / 2;
+                case 3 -> betAmount = balance;
+                case 4 -> betAmount = Math.min(toCall, balance); // 콜 or 올인
+                case 5 -> {
+                    System.out.println("다이 선택. 탈락합니다.");
+                    iter.remove();
+                    continue;
+                }
+                default -> {
+                    System.out.println("잘못된 선택. 탈락합니다.");
+                    iter.remove();
+                    continue;
+                }
+            }
+
+            // 베팅 처리
+            if (p.getBettingSystem().placeBet(betAmount)) {
+                currentMaxBet = Math.max(currentMaxBet, p.getBettingSystem().getCurrentBet());
+            } else {
+                System.out.println("베팅 실패. 자동 탈락.");
                 iter.remove();
             }
+
         }
 
-        if (bettingPlayers.isEmpty()) {
-            clearScreen();
-            System.out.println("⚠ 아무도 베팅하지 않아 게임 종료");
-            return;
-        }
 
         // 6번째 카드 지급
         for (Card_Player p : bettingPlayers) {
@@ -158,16 +194,49 @@ public class CardMain {
             clearScreen();
             System.out.println(p.getName() + "의 현재 카드 (6장):");
             printCards(p, p);
+            System.out.println("현재 잔액: " + p.getBettingSystem().getBalance() + "원");
+
             System.out.print("계속 베팅하시겠습니까? (y/n): ");
-            if (!sc.nextLine().equalsIgnoreCase("y")) {
+            String input = sc.nextLine();
+            if (!input.equalsIgnoreCase("y")) {
+                iter.remove();
+                continue;
+            }
+
+            System.out.println("베팅 옵션: 1) 쿼터  2) 하프  3) 올인  4) 콜  5) 다이");
+            System.out.print("선택 (1~5): ");
+            int choice = Integer.parseInt(sc.nextLine());
+
+            int balance = p.getBettingSystem().getBalance();
+            int myCurrentBet = p.getBettingSystem().getCurrentBet();
+            int toCall = currentMaxBet - myCurrentBet;
+            int betAmount = 0;
+
+            switch (choice) {
+                case 1 -> betAmount = balance / 4;
+                case 2 -> betAmount = balance / 2;
+                case 3 -> betAmount = balance;
+                case 4 -> betAmount = Math.min(toCall, balance); // 콜 or 올인
+                case 5 -> {
+                    System.out.println("다이 선택. 탈락합니다.");
+                    iter.remove();
+                    continue;
+                }
+                default -> {
+                    System.out.println("잘못된 선택. 탈락합니다.");
+                    iter.remove();
+                    continue;
+                }
+            }
+
+            // 베팅 처리
+            if (p.getBettingSystem().placeBet(betAmount)) {
+                currentMaxBet = Math.max(currentMaxBet, p.getBettingSystem().getCurrentBet());
+            } else {
+                System.out.println("베팅 실패. 자동 탈락.");
                 iter.remove();
             }
-        }
 
-        if (bettingPlayers.isEmpty()) {
-            clearScreen();
-            System.out.println("⚠ 아무도 베팅하지 않아 게임 종료");
-            return;
         }
 
         // 7번째 카드 지급
@@ -183,18 +252,51 @@ public class CardMain {
         while (iter.hasNext()) {
             Card_Player p = iter.next();
             clearScreen();
-            System.out.println(p.getName() + "의 최종 카드 (7장):");
+            System.out.println(p.getName() + "의 현재 카드 (7장):");
             printCards(p, p);
+            System.out.println("현재 잔액: " + p.getBettingSystem().getBalance() + "원");
+
             System.out.print("최종 베팅하시겠습니까? (y/n): ");
-            if (!sc.nextLine().equalsIgnoreCase("y")) {
+            String input = sc.nextLine();
+            if (!input.equalsIgnoreCase("y")) {
+                iter.remove();
+                continue;
+            }
+
+            System.out.println("베팅 옵션: 1) 쿼터  2) 하프  3) 올인  4) 콜  5) 다이");
+            System.out.print("선택 (1~5): ");
+            int choice = Integer.parseInt(sc.nextLine());
+
+            int balance = p.getBettingSystem().getBalance();
+            int myCurrentBet = p.getBettingSystem().getCurrentBet();
+            int toCall = currentMaxBet - myCurrentBet;
+            int betAmount = 0;
+
+            switch (choice) {
+                case 1 -> betAmount = balance / 4;
+                case 2 -> betAmount = balance / 2;
+                case 3 -> betAmount = balance;
+                case 4 -> betAmount = Math.min(toCall, balance); // 콜 or 올인
+                case 5 -> {
+                    System.out.println("다이 선택. 탈락합니다.");
+                    iter.remove();
+                    continue;
+                }
+                default -> {
+                    System.out.println("잘못된 선택. 탈락합니다.");
+                    iter.remove();
+                    continue;
+                }
+            }
+
+            // 베팅 처리
+            if (p.getBettingSystem().placeBet(betAmount)) {
+                currentMaxBet = Math.max(currentMaxBet, p.getBettingSystem().getCurrentBet());
+            } else {
+                System.out.println("베팅 실패. 자동 탈락.");
                 iter.remove();
             }
-        }
 
-        if (bettingPlayers.isEmpty()) {
-            clearScreen();
-            System.out.println("⚠ 아무도 베팅하지 않아 게임 종료");
-            return;
         }
 
         // 족보 평가
@@ -213,6 +315,19 @@ public class CardMain {
             if (best == null || result.compareTo(best) > 0) {
                 best = result;
                 winner = p;
+            }
+        }
+        
+     // 베팅 금액 합산 + 승자 지급
+        int totalPot = 0;
+        for (Card_Player p : bettingPlayers) {
+            totalPot += p.getBettingSystem().getCurrentBet();
+        }
+
+        if (winner != null) {
+            winner.getBettingSystem().winPot(totalPot);
+            for (Card_Player p : bettingPlayers) {
+                if (p != winner) p.getBettingSystem().loseBet();
             }
         }
 
