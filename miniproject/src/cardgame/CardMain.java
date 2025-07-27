@@ -331,14 +331,13 @@ public class CardMain {
             }
         }
 
-        // 결과 발표
+     // 결과 발표
         if (winner != null) {
             System.out.printf("\n🎉 승자: %s (%s)\n", winner.getName(), best.getRank());
+            System.out.printf("💰 상금: %,d원\n", totalPot);  // 💥 이 줄 추가
         } else {
             System.out.println("⚠ 베팅한 플레이어가 없어 승자 없음");
         }
 
-        System.out.println("\n게임 종료");
-        sc.close();
     }
 }
