@@ -68,9 +68,11 @@ public class Card implements Comparable<Card> {
      */
     @Override
     public String toString() {
-        String value = rank.length() == 1 ? " " + rank : rank;
-        return "[" + suit + value + "]";
+        // rank 정렬: 1글자는 뒤에 공백 추가, 10은 그대로
+        String rankFormatted = rank.length() == 1 ? rank + " " : rank;
+        return String.format("[%s %s]", suit, rankFormatted); // "[♠  Q]" 등으로 출력
     }
+
 
     /**
      * 동일한 문양 + 숫자일 경우 같은 카드로 간주

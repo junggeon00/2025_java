@@ -1,65 +1,106 @@
 package cardgame;
-
 import java.util.*;
 
 public class CardMain {
     private static final int PLAYER_COUNT = 3;
 
-    private static void printCards(List<Card> cards) {
-        for (Card c : cards) {
-            System.out.print(c + " ");
+    private static void printCards(Card_Player viewer, Card_Player owner) {
+        List<Card> cards = owner.getHand();
+        int cardCount = cards.size();
+
+        for (int i = 0; i < cardCount; i++) {
+            String out;
+            if (viewer == owner) {
+                out = cards.get(i).toString();
+            } else {
+                boolean isHidden = false;
+                if (cardCount == 5 || cardCount == 6) {
+                    if (i == 0 || i == 1) isHidden = true;
+                } else if (cardCount == 7) {
+                    if (i == 0 || i == 1 || i == 6) isHidden = true;
+                }
+                out = isHidden ? "[??]" : cards.get(i).toString();
+            }
+
+            // ✅ 출력 정렬: 카드 하나당 8자리 확보
+            System.out.printf("%-8s", out);
         }
         System.out.println();
     }
+
+
 
     private static void printBlankLines(int n) {
         for (int i = 0; i < n; i++) System.out.println();
     }
 
+    public static void clearScreen() {
+        for (int i = 0; i < 50; i++) System.out.println();
+        
+    }
+    
+ // 모든 플레이어의 카드를 각자 시점에서 출력 (자기자신이 맨 위)
+    private static void printAllPlayerCards(List<Card_Player> players, Scanner sc) {
+        for (Card_Player viewer : players) {
+            clearScreen();
+            System.out.println("[" + viewer.getName() + " 시점]");
+
+            List<Card_Player> ordered = new ArrayList<>();
+            ordered.add(viewer);
+            for (Card_Player p : players) {
+                if (p != viewer) ordered.add(p);
+            }
+
+            for (Card_Player target : ordered) {
+                System.out.print(target.getName() + ": ");
+                printCards(viewer, target);
+            }
+
+            System.out.print("Enter로 계속...");
+            sc.nextLine();
+        }
+    }
+
+
     public static void main(String[] args) {
         Scanner sc = new Scanner(System.in);
         CardCase deck = new CardCase();
 
-        // 1. 플레이어 등록
         List<Card_Player> players = new ArrayList<>();
         for (int i = 1; i <= PLAYER_COUNT; i++) {
             players.add(new Card_Player("Player" + i));
         }
 
-        // 2. 처음에 4장씩 배분
+        // 초기 4장 배분
         for (Card_Player p : players) {
             for (int i = 0; i < 4; i++) {
                 p.receiveCard(deck.drawCard());
             }
         }
 
-        // 3. 카드 버리기
-     // 3. 카드 버리기
+        // 카드 1장 버리기
         for (Card_Player p : players) {
-            printBlankLines(4);
+            clearScreen();
             System.out.println(p.getName() + "의 초기 카드:");
-            printCards(p.getHand());
-
+            printCards(p, p);
             System.out.print("버릴 카드 인덱스 (1~4): ");
-            int index = Integer.parseInt(sc.nextLine()) - 1;  // 인덱스 보정
+            int index = Integer.parseInt(sc.nextLine()) - 1;
             p.getHand().remove(index);
         }
 
+        // 공개 카드 선택
         Map<Card_Player, Card> openCards = new HashMap<>();
-
         for (Card_Player p : players) {
-            printBlankLines(4);
+            clearScreen();
             System.out.println(p.getName() + "의 현재 카드:");
-            printCards(p.getHand());
-
+            printCards(p, p);
             System.out.print("공개할 카드 인덱스 선택 (1~3): ");
-            int openIndex = Integer.parseInt(sc.nextLine()) - 1;  // 인덱스 보정
-            Card open = p.getHand().get(openIndex); // 가져오기만!
+            int openIndex = Integer.parseInt(sc.nextLine()) - 1;
+            Card open = p.getHand().get(openIndex);
             openCards.put(p, open);
         }
 
-
-        // 5. 공개 카드 높은 순으로 플레이어 정렬
+        // 공개 카드 높은 순 정렬
         players.sort((a, b) -> {
             Card ca = openCards.get(a);
             Card cb = openCards.get(b);
@@ -72,109 +113,117 @@ public class CardMain {
         List<Card_Player> bettingPlayers = new ArrayList<>(players);
         Map<Card_Player, PokerHandEvaluator.HandResult> handResults = new HashMap<>();
 
-        // [4~5번째 카드] 한 번에 지급
-        System.out.println("\n===== [4~5번째 카드 지급] =====");
+        // 4~5번째 카드 지급
         for (Card_Player p : bettingPlayers) {
-            p.receiveCard(deck.drawCard()); // 4번째
-            p.receiveCard(deck.drawCard()); // 5번째
-
-            printBlankLines(1);
-            System.out.println(p.getName() + "의 현재 카드 (5장):");
-            printCards(p.getHand());
+            clearScreen();
+            p.receiveCard(deck.drawCard());
+            p.receiveCard(deck.drawCard());
         }
 
-        // [5장 받은 후] 베팅 여부 확인
+        printAllPlayerCards(players, sc);
+
+
+
+        // 5장 받은 후 베팅
         Iterator<Card_Player> iter = bettingPlayers.iterator();
         while (iter.hasNext()) {
             Card_Player p = iter.next();
-            printBlankLines(2);
+            clearScreen();
             System.out.println(p.getName() + "의 현재 카드 (5장):");
-            printCards(p.getHand());
-
+            printCards(p, p);
             System.out.print("계속 베팅하시겠습니까? (y/n): ");
-            String input = sc.nextLine();
-            if (!input.equalsIgnoreCase("y")) {
+            if (!sc.nextLine().equalsIgnoreCase("y")) {
                 iter.remove();
             }
         }
 
         if (bettingPlayers.isEmpty()) {
+            clearScreen();
             System.out.println("⚠ 아무도 베팅하지 않아 게임 종료");
-            sc.close();
             return;
         }
 
-        // [6번째 카드 지급]
-        System.out.println("\n===== [6번째 카드 지급] =====");
+        // 6번째 카드 지급
         for (Card_Player p : bettingPlayers) {
             p.receiveCard(deck.drawCard());
         }
 
-        // [6장 받은 후] 베팅 여부 확인
+        printAllPlayerCards(players, sc);
+
+
+        // 6장 받은 후 베팅
         iter = bettingPlayers.iterator();
         while (iter.hasNext()) {
             Card_Player p = iter.next();
-            printBlankLines(2);
+            clearScreen();
             System.out.println(p.getName() + "의 현재 카드 (6장):");
-            printCards(p.getHand());
-
+            printCards(p, p);
             System.out.print("계속 베팅하시겠습니까? (y/n): ");
-            String input = sc.nextLine();
-            if (!input.equalsIgnoreCase("y")) {
+            if (!sc.nextLine().equalsIgnoreCase("y")) {
                 iter.remove();
             }
         }
 
         if (bettingPlayers.isEmpty()) {
+            clearScreen();
             System.out.println("⚠ 아무도 베팅하지 않아 게임 종료");
-            sc.close();
             return;
         }
 
-        
-
-        // [7번째 카드 지급]
-        System.out.println("\n===== [7번째 카드 지급] =====");
+        // 7번째 카드 지급
         for (Card_Player p : bettingPlayers) {
             p.receiveCard(deck.drawCard());
-
-            printBlankLines(1);
-            System.out.println(p.getName() + "의 최종 카드 (7장):");
-            printCards(p.getHand());
         }
 
+        printAllPlayerCards(players, sc);
 
 
+        // 7장 받은 후 최종 베팅
+        iter = bettingPlayers.iterator();
+        while (iter.hasNext()) {
+            Card_Player p = iter.next();
+            clearScreen();
+            System.out.println(p.getName() + "의 최종 카드 (7장):");
+            printCards(p, p);
+            System.out.print("최종 베팅하시겠습니까? (y/n): ");
+            if (!sc.nextLine().equalsIgnoreCase("y")) {
+                iter.remove();
+            }
+        }
 
-        // 9. 족보 평가
-        System.out.println("\n=== 최종 카드 및 족보 평가 ===");
+        if (bettingPlayers.isEmpty()) {
+            clearScreen();
+            System.out.println("⚠ 아무도 베팅하지 않아 게임 종료");
+            return;
+        }
+
+        // 족보 평가
+        clearScreen();
         Card_Player winner = null;
         PokerHandEvaluator.HandResult best = null;
 
         for (Card_Player p : bettingPlayers) {
             System.out.println(p.getName() + "의 전체 카드:");
-            printCards(p.getHand());
-
+            printCards(p, p);
             PokerHandEvaluator.HandResult result = PokerHandEvaluator.evaluate(p.getHand());
             handResults.put(p, result);
             System.out.println("족보: " + result.getRank());
+            System.out.println("----------------------------------");
 
             if (best == null || result.compareTo(best) > 0) {
                 best = result;
                 winner = p;
             }
-
-            System.out.println("---------------------------------------");
         }
 
-        // 10. 결과
+        // 결과 발표
         if (winner != null) {
             System.out.printf("\n🎉 승자: %s (%s)\n", winner.getName(), best.getRank());
         } else {
             System.out.println("⚠ 베팅한 플레이어가 없어 승자 없음");
         }
 
-        sc.close();
         System.out.println("\n게임 종료");
+        sc.close();
     }
 }
